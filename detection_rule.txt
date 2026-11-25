@@ -1,0 +1,31 @@
+
+
+title: Linux SSH Brute Force and Root User Creation
+id: 8f3a9c2e-1b4d-4e5f-9a8b-7c6d5e4f3a2b
+status: experimental
+description: Detects SSH brute force attempts, suspicious shadow file access, and creation of root-level users on Linux systems.
+author: Detection Engineer
+date: 2023/10/27
+logsource:
+  product: linux
+  service: syslog
+detection:
+  ssh_fail:
+    - message|contains: 'Failed password'
+    - message|contains: 'Invalid user'
+  root_user:
+    - message|contains: 'UID=0'
+      message|contains: 'useradd'
+  shadow_access:
+    - message|contains: '/etc/shadow'
+      message|contains: 'sudo'
+  condition: (ssh_fail and count(message, 5)) or root_user or shadow_access
+falsepositives:
+  - Legitimate administrative SSH testing
+  - Legitimate user creation with UID 0 (rare)
+level: high
+tags:
+  - attack.initial_access
+  - attack.persistence
+  - attack.privilege_escalation
+  - attack.credential_access
